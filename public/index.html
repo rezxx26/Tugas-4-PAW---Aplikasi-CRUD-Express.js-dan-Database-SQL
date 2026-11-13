@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Aplikasi Keuangan Mandiri</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        input, button { padding: 8px; margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h2>Catatan Pemasukan Keuangan</h2>
+
+    <form id="formPemasukan">
+        <input type="hidden" id="editId">
+        <input type="text" id="keterangan" placeholder="Keterangan (misal: Gaji)" required>
+        <input type="number" id="jumlah" placeholder="Jumlah (Rp)" required>
+        <button type="submit" id="btnSubmit">Tambah Data</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Keterangan</th>
+                <th>Jumlah</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="tabelData"></tbody>
+    </table>
+
+    <script>
+        const API_URL = '/api/pemasukan';
+        
+        async function loadData() {
+            const res = await fetch(API_URL);
+            const result = await res.json();
+            const tbody = document.getElementById('tabelData');
+            tbody.innerHTML = '';
+
+            result.data.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td>${item.keterangan}</td>
+                        <td>Rp ${item.jumlah.toLocaleString('id-ID')}</td>
+                        <td>
+                            <button onclick="editData(${item.id}, '${item.keterangan}', ${item.jumlah})">Edit</button>
+                            <button onclick="hapusData(${item.id})">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('formPemasukan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const keterangan = document.getElementById('keterangan').value;
+            const jumlah = Number(document.getElementById('jumlah').value);
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keterangan, jumlah })
+            });
+
+            document.getElementById('formPemasukan').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('btnSubmit').innerText = 'Tambah Data';
+            loadData();
+        });
+
+        function editData(id, keterangan, jumlah) {
+            document.getElementById('editId').value = id;
+            document.getElementById('keterangan').value = keterangan;
+            document.getElementById('jumlah').value = jumlah;
+            document.getElementById('btnSubmit').innerText = 'Simpan Perubahan';
+        }
+
+        async function hapusData(id) {
+            if (confirm('Yakin ingin menghapus data ini?')) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadData();
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
