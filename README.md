@@ -21,3 +21,5 @@ express-keuangan/
 ├── index.js                   # Entry point server Express.js
 ├── package.json               # Daftar dependensi proyek (express, mysql2, dotenv)
 └── tabungan_db.sql            # File dump struktur dan data awal database MySQL
+
+WAHYU ADI NOVRESA - 255150707111003
